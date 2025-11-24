@@ -1,53 +1,69 @@
-## Monitor BitDogLab MQTT PICO W
-Sistema de monitoramento via MQTT para o hardware educacional BitDogLab, permitindo a coleta e visualização de dados em tempo real.
+# 📡 Monitoramento IoT com BitDogLab e MQTT
 
-<div align="center">
-  <img src="img/uai.jpeg" alt="monitor mqtt" width="60%">
-</div>
+Este projeto foi desenvolvido como parte da atividade da **Unidade 2 - Comunicação em IoT** da disciplina de Software Embarcado. O objetivo é integrar o hardware educacional **BitDogLab (Raspberry Pi Pico W)** a um broker MQTT para a transmissão de dados de telemetria e controle em tempo real.
 
-## 🔍 Visão Geral
-Este projeto conecta sensores do BitDogLab a um broker MQTT, transmitindo dados de temperatura, ativando e desativando o LED e recebendo mensagens. 
+## 📋 Funcionalidades Implementadas
 
-## 🚀 Pré-requisitos
-Hardware
-- BitDogLab - Raspberry Pi Pico W
-- Sensores: Temperatura e LED
+O sistema conecta-se via Wi-Fi e estabelece comunicação com um broker MQTT público (`mqtt.iot.natal.br`) para realizar as seguintes tarefas:
 
-## Broker MQTT
-- HiveMQ Edge
+* **📶 Conectividade:** Conexão automática via Wi-Fi (WPA2) e reconexão ao broker MQTT em caso de queda.
+* **🌡️ Monitoramento de Temperatura:** Leitura do sensor interno de temperatura do RP2040 e publicação periódica (a cada 30 segundos) no tópico MQTT.
+* **🕹️ Controle via Joystick:** Leitura dos eixos analógicos do Joystick. A publicação ocorre apenas quando há mudança de estado (Cima, Baixo, Esquerda, Direita), otimizando o tráfego de rede.
+* **💾 Mensagens Retidas:** Todas as publicações utilizam a flag *Retain*, garantindo que o último estado permaneça disponível no broker para novos assinantes.
+* **💡 Feedback Visual:**
+    * **LED Verde:** Pisca rapidamente a cada publicação de mensagem confirmada.
+    * **Display OLED:** Exibe o status da conexão (Wi-Fi/MQTT), a última temperatura lida e a direção atual do joystick.
 
-## Consumidor
-- Qualquer cliente MQTT ou sistema 
+## 🛠️ Hardware Necessário
 
-## 🎯 Funcionamento
-- É essencial ativar o HiveMQ Edge, com o broker em funcionamento o aplicativo MQTT Studio será conectado para visualizar a comunicação. Por fim, basta executar o código,
-após colocar para rodar o HiveMQ Edege vá ao programa MQQT Studio e subscreva com o nome do topico que foi definido no código, intitulado como pico-led-controle.
-- Agora vá ao vscode e coloque o programa para rodar, lembrando que você deve estar conectado a mesma rede que definiu no código para estabelecer a conexão.
-- No terminal do vscode, na parte do Serial Monitor ele receberá as  informações do sensor com a voltagem e temperatura em graus celsius, informa que o led é 0,
-então está apagado e envia uma mensagem para o tópico bitdoglab/temperature.
-- Na imagem a seguir pode ser notado que foi publicada a mensagem "on" no MQTT Studio e esta é recebida pela placa no display OLED,
-juntamento com a temperatura e o LED Verde é ativado, isto tudo também pode ser verificado no serial monitor do VSCode.
+* Placa de desenvolvimento **BitDogLab** (Raspberry Pi Pico W).
+* Display OLED SSD1306 (I2C).
+* Joystick Analógico.
+* LED Integrado (GPIO 11).
 
-<div align="center">
-  <img src="img/on.jpeg" alt="monitor mqtt" width="60%">
-</div>
+## ⚙️ Configurações e Tópicos MQTT
 
-- No próximo passo foi publicada a mensagem "uai" no MQTT Studio é recebida pela placa no display OLED, juntamento com a temperatura e o LED Verde continua ativo,
-isto tudo também pode ser verificado no serial monitor do VSCode.
+A solução utiliza a biblioteca `lwIP` para a stack TCP/IP e MQTT.
 
-<div align="center">
-  <img src="img/uai.jpeg" alt="monitor mqtt" width="60%">
-</div>
+### Estrutura de Tópicos
+Os tópicos foram personalizados conforme o desafio, utilizando a estrutura:
+`ha/desafio18/marcelo.junior/`
 
-- E por fim a mensagem "off" foi publicada no MQTT Studio e é recebida pela placa no display OLED, juntamento com a temperatura e o LED Verde é desativado, isto
-tudo também pode ser verificado no serial monitor do VSCode.
+| Função | Tópico | Tipo de Dado | Comportamento |
+| :--- | :--- | :--- | :--- |
+| **Temperatura** | `.../temp` | Int (ex: `30`) | Publicação a cada 30s |
+| **Joystick** | `.../joy` | String (ex: `cima`) | Publicação por interrupção/mudança |
 
-<div align="center">
-  <img src="img/off.jpeg" alt="monitor mqtt" width="60%">
-</div>
+### Credenciais
+Configuradas no arquivo `mqtt_configuracao.c`:
+* **Broker:** `mqtt.iot.natal.br`
+* **Porta:** `1883`
+* **Usuário:** `desafio18`
 
+## 🚀 Como Executar
 
-## 📚 Referências
-- BitDogLab 
-- Broker HiveMQ
-- MQTT 
+1.  **Clonar o Repositório:**
+    ```bash
+    git clone <seu-link-do-repo>
+    ```
+2.  **Configurar Wi-Fi:**
+    Edite as definições no arquivo `Tarefa_Unidade_II_MQTT.c`:
+    ```c
+    #define SSID_WIFI "SUA_REDE"
+    #define SENHA_WIFI "SUA_SENHA"
+    ```
+3.  **Compilar e Carregar:**
+    Utilize a extensão do **Raspberry Pi Pico** no VS Code ou o **CMake** via terminal para compilar o projeto e carregar o arquivo `.uf2` na placa.
+
+## 📺 Estrutura do Código
+
+* `Tarefa_Unidade_II_MQTT.c`: Loop principal, lógica de leitura do Joystick, controle do OLED e gerenciamento de tempo.
+* `mqtt_configuracao.c`: Implementação das callbacks do cliente MQTT (conexão, subscrição e publicação).
+* `inc/`: Bibliotecas auxiliares para o display SSD1306 e leitura do sensor de temperatura.
+
+## 🎥 Demonstração
+
+https://youtu.be/k3HD-kh3B4A
+
+---
+**Desenvolvido por:** Marcelo Junior
